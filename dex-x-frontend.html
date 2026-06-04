@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dex-X Solution</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css">
+  <style>
+    :root {
+      --bg: #060B18;
+      --bg2: #0D1424;
+      --bg3: #111827;
+      --border: rgba(6,182,212,0.12);
+      --border-active: rgba(6,182,212,0.4);
+      --cyan: #06B6D4;
+      --cyan-dim: rgba(6,182,212,0.08);
+      --blue: #2563EB;
+      --green: #22C55E;
+      --red: #EF4444;
+      --amber: #EAB308;
+      --text: #E2E8F0;
+      --text-dim: #64748B;
+      --text-mid: #94A3B8;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; }
+
+    /* ── LOGIN ── */
+    #login-screen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(6,182,212,0.12), transparent),
+                  radial-gradient(ellipse 50% 40% at 80% 100%, rgba(37,99,235,0.1), transparent),
+                  var(--bg);
+    }
+    .login-card {
+      background: var(--bg2);
+      border: 1px solid var(--border-active);
+      border-radius: 16px;
+      padding: 40px;
+      width: 400px;
+      box-shadow: 0 0 60px rgba(6,182,212,0.08);
+    }
+    .login-logo { text-align:center; margin-bottom: 32px; }
+    .login-logo .x { font-size: 40px; font-weight: 800; color: var(--cyan); font-family:'Space Mono'; text-shadow: 0 0 20px rgba(6,182,212,0.5); }
+    .login-logo .brand { font-size: 18px; font-weight: 700; color: var(--text); margin-top: 4px; }
+    .login-logo .sub { font-size: 11px; color: var(--cyan); letter-spacing: 2px; text-transform:uppercase; margin-top: 2px; }
+    .login-error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #FCA5A5; border-radius: 8px; padding: 10px 14px; font-size:13px; margin-bottom:16px; display:none; }
+    .field { margin-bottom: 16px; }
+    .field label { display:block; font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+    .field input {
+      width: 100%; background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px 14px; color: var(--text);
+      font-family: 'Space Mono', monospace; font-size: 13px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .field input:focus { border-color: var(--cyan); }
+    .btn-primary {
+      width: 100%; background: var(--cyan); color: #000; border: none;
+      border-radius: 8px; padding: 13px; font-family: 'Syne'; font-weight: 700;
+      font-size: 14px; cursor: pointer; transition: all 0.2s; margin-top: 4px;
+    }
+    .btn-primary:hover { background: #38BDF8; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .login-toggle { text-align:center; margin-top: 16px; font-size: 12px; color: var(--text-dim); }
+    .login-toggle a { color: var(--cyan); cursor: pointer; text-decoration:none; }
+    .login-toggle a:hover { text-decoration: underline; }
+    .login-hint { text-align:center; margin-top:12px; font-size:11px; color:var(--text-dim); font-family:'Space Mono'; }
+
+    /* ── DASHBOARD ── */
+    #dashboard { display: none; flex-direction: column; min-height: 100vh; }
+    .dex-header {
+      background: rgba(13,20,36,0.97); border-bottom: 1px solid var(--border);
+      padding: 12px 24px; display:flex; align-items:center; justify-content:space-between;
+      position: sticky; top:0; z-index: 100; backdrop-filter: blur(12px);
+    }
+    .dex-logo { display:flex; align-items:center; gap: 10px; }
+    .logo-x { font-size:22px; font-weight:700; color:var(--cyan); font-family:'Space Mono'; text-shadow: 0 0 12px rgba(6,182,212,0.5); }
+    .logo-ring { width:36px; height:36px; border-radius:50%; border:1.5px solid rgba(6,182,212,0.4); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .logo-text { font-size:15px; font-weight:700; }
+    .logo-sub { font-size:10px; color:var(--cyan); letter-spacing:1.5px; text-transform:uppercase; }
+    .header-nav { display:flex; gap:6px; }
+    .nav-btn { background:transparent; border:1px solid var(--border); color:var(--text-dim); padding:6px 14px; border-radius:6px; font-size:12px; cursor:pointer; transition:all 0.2s; font-family:'Syne'; }
+    .nav-btn:hover,.nav-btn.active { background:var(--cyan-dim); color:var(--cyan); border-color:var(--cyan); }
+    .header-right { display:flex; align-items:center; gap:16px; }
+    .header-status { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--green); }
+    .dot { width:7px; height:7px; border-radius:50%; animation: pulse 2s infinite; }
+    .dot.green { background:var(--green); box-shadow:0 0 6px var(--green); }
+    .dot.red { background:var(--red); box-shadow:0 0 6px var(--red); animation:none; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .user-badge { display:flex; align-items:center; gap:8px; background:var(--bg3); border:1px solid var(--border); border-radius:8px; padding:6px 12px; font-size:12px; cursor:pointer; }
+    .user-badge:hover { border-color:var(--border-active); }
+    .dex-main { display:grid; grid-template-columns:210px 1fr; flex:1; }
+    .sidebar { background:rgba(13,20,36,0.8); border-right:1px solid var(--border); padding:20px 0; }
+    .sidebar-label { font-size:10px; color:#334155; letter-spacing:1.5px; text-transform:uppercase; padding:0 16px; margin-bottom:8px; }
+    .sidebar-item { display:flex; align-items:center; gap:10px; padding:9px 16px; cursor:pointer; font-size:13px; color:var(--text-dim); transition:all 0.2s; border-left:2px solid transparent; }
+    .sidebar-item:hover { background:var(--cyan-dim); color:var(--text-mid); }
+    .sidebar-item.active { background:rgba(6,182,212,0.07); color:var(--cyan); border-left-color:var(--cyan); }
+    .sidebar-item i { font-size:16px; }
+    .sidebar-badge { margin-left:auto; background:var(--red); color:#fff; font-size:10px; padding:1px 6px; border-radius:10px; }
+    .content { padding:20px 24px; overflow-y:auto; }
+    .page-title { font-size:20px; font-weight:700; margin-bottom:4px; }
+    .page-sub { font-size:12px; color:var(--text-dim); margin-bottom:20px; }
+    .metrics-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px; }
+    .metric-card {
+      background:var(--bg2); border:1px solid var(--border); border-radius:10px;
+      padding:14px 16px; position:relative; overflow:hidden; transition: border-color 0.3s;
+    }
+    .metric-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+    .metric-card.blue::before { background:linear-gradient(90deg,#2563EB,#06B6D4); }
+    .metric-card.green::before { background:linear-gradient(90deg,#22C55E,#06B6D4); }
+    .metric-card.red::before { background:linear-gradient(90deg,#EF4444,#F97316); }
+    .metric-card.cyan::before { background:linear-gradient(90deg,#06B6D4,#38BDF8); }
+    .metric-label { font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.8px; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+    .metric-value { font-size:26px; font-weight:700; color:var(--text); font-family:'Space Mono'; transition: color 0.3s; }
+    .metric-change { font-size:11px; margin-top:4px; }
+    .metric-change.up { color:var(--green); }
+    .metric-change.down { color:var(--red); }
+    .panels-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+    .panel { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:16px; }
+    .panel-title { font-size:13px; font-weight:600; color:var(--text-mid); margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+    .panel-title i { color:var(--cyan); font-size:16px; }
+    .log-item { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:12px; animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from{opacity:0; transform:translateY(-4px)} to{opacity:1; transform:none} }
+    .log-item:last-child { border-bottom:none; }
+    .log-badge { padding:2px 8px; border-radius:4px; font-size:10px; font-weight:600; white-space:nowrap; flex-shrink:0; font-family:'Space Mono'; }
+    .badge-CRITICAL,.badge-ERROR { background:rgba(239,68,68,0.15); color:var(--red); }
+    .badge-WARNING { background:rgba(234,179,8,0.15); color:var(--amber); }
+    .badge-FIXED,.badge-OK { background:rgba(34,197,94,0.15); color:var(--green); }
+    .badge-INFO { background:rgba(6,182,212,0.15); color:var(--cyan); }
+    .log-msg { color:var(--text-dim); line-height:1.5; }
+    .log-msg span { color:var(--text-mid); }
+    .log-time { margin-left:auto; color:#334155; white-space:nowrap; font-size:10px; font-family:'Space Mono'; }
+    .bar-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; font-size:12px; }
+    .bar-label { color:var(--text-dim); width:70px; flex-shrink:0; }
+    .bar-track { flex:1; height:6px; background:rgba(255,255,255,0.05); border-radius:3px; overflow:hidden; }
+    .bar-fill { height:100%; border-radius:3px; transition: width 1s ease; }
+    .bar-fill.cyan { background:linear-gradient(90deg,#06B6D4,#38BDF8); }
+    .bar-fill.green { background:linear-gradient(90deg,#22C55E,#4ADE80); }
+    .bar-fill.blue { background:linear-gradient(90deg,#2563EB,#60A5FA); }
+    .bar-fill.red { background:linear-gradient(90deg,#EF4444,#F87171); }
+    .bar-val { color:var(--text-mid); width:36px; text-align:right; flex-shrink:0; font-family:'Space Mono'; font-size:11px; }
+    .ai-panel { background:rgba(6,182,212,0.04); border:1px solid rgba(6,182,212,0.18); border-radius:10px; padding:16px; margin-bottom:14px; }
+    .ai-header { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+    .ai-orb { width:32px; height:32px; border-radius:50%; background:rgba(6,182,212,0.12); border:1px solid rgba(6,182,212,0.4); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .ai-orb i { color:var(--cyan); font-size:16px; }
+    .ai-title { font-size:14px; font-weight:700; color:var(--cyan); }
+    .ai-subtitle { font-size:11px; color:var(--text-dim); }
+    .ai-msg { background:rgba(6,11,24,0.6); border-radius:8px; padding:10px 14px; font-size:12px; color:var(--text-mid); line-height:1.8; margin-bottom:10px; }
+    .ai-msg em { color:#38BDF8; font-style:normal; font-weight:600; }
+    .ai-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .ai-chip { background:rgba(37,99,235,0.08); border:1px solid rgba(37,99,235,0.2); color:#60A5FA; padding:5px 12px; border-radius:20px; font-size:11px; cursor:pointer; transition:all 0.2s; }
+    .ai-chip:hover { background:rgba(37,99,235,0.18); }
+    .services-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .service-card { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:12px; display:flex; align-items:center; gap:10px; cursor:pointer; transition:all 0.2s; }
+    .service-card:hover { border-color:var(--border-active); background:var(--cyan-dim); }
+    .service-icon { width:32px; height:32px; border-radius:7px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .service-icon.blue { background:rgba(37,99,235,0.15); } .service-icon.blue i { color:#60A5FA; }
+    .service-icon.cyan { background:rgba(6,182,212,0.15); } .service-icon.cyan i { color:var(--cyan); }
+    .service-icon.green { background:rgba(34,197,94,0.15); } .service-icon.green i { color:var(--green); }
+    .service-icon.red { background:rgba(239,68,68,0.15); } .service-icon.red i { color:var(--red); }
+    .service-icon.purple { background:rgba(139,92,246,0.15); } .service-icon.purple i { color:#A78BFA; }
+    .service-icon.amber { background:rgba(234,179,8,0.15); } .service-icon.amber i { color:var(--amber); }
+    .service-icon i { font-size:16px; }
+    .service-name { font-size:12px; color:var(--text-mid); font-weight:600; }
+    .service-status { font-size:10px; color:#334155; margin-top:2px; }
+    .service-status.active { color:var(--green); }
+    .ws-badge { display:flex; align-items:center; gap:5px; font-size:10px; }
+    .slogan { text-align:center; padding:14px; font-size:10px; color:#1E293B; letter-spacing:2px; text-transform:uppercase; border-top:1px solid var(--border); margin-top:4px; }
+    .toast {
+      position:fixed; bottom:24px; right:24px; background:var(--bg2); border:1px solid var(--red);
+      border-radius:10px; padding:12px 16px; font-size:12px; color:var(--red);
+      z-index:999; display:none; animation:slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:none;opacity:1} }
+  </style>
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ══════════════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="x">✕</div>
+      <div class="brand">Dex-X Solution</div>
+      <div class="sub">AI · Security · Cloud</div>
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <div id="login-form">
+      <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="admin@dex-x.io" /></div>
+      <div class="field"><label>Password</label><input type="password" id="login-password" placeholder="••••••••" /></div>
+      <button class="btn-primary" id="login-btn" onclick="doLogin()">Sign In</button>
+      <div class="login-hint">demo: admin@dex-x.io / admin123</div>
+      <div class="login-toggle">Don't have an account? <a onclick="showRegister()">Register</a></div>
+    </div>
+    <div id="register-form" style="display:none">
+      <div class="field"><label>Name</label><input type="text" id="reg-name" placeholder="Your Name" /></div>
+      <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="you@email.com" /></div>
+      <div class="field"><label>Password</label><input type="password" id="reg-password" placeholder="••••••••" /></div>
+      <button class="btn-primary" id="reg-btn" onclick="doRegister()">Create Account</button>
+      <div class="login-toggle">Already have an account? <a onclick="showLogin()">Sign In</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ════════════════════════════════════════════════════════════ -->
+<div id="dashboard">
+  <div class="dex-header">
+    <div class="dex-logo">
+      <div class="logo-ring"><div class="logo-x">✕</div></div>
+      <div>
+        <div class="logo-text">Dex-<span style="color:var(--cyan)">X</span> Solution</div>
+        <div class="logo-sub">AI · Security · Cloud</div>
+      </div>
+    </div>
+    <div class="header-nav">
+      <button class="nav-btn active">Dashboard</button>
+      <button class="nav-btn">Security</button>
+      <button class="nav-btn">AI Agent</button>
+      <button class="nav-btn">Database</button>
+      <button class="nav-btn">Reports</button>
+    </div>
+    <div class="header-right">
+      <div class="ws-badge" id="ws-status">
+        <div class="dot red"></div><span style="color:var(--text-dim);font-size:11px">Connecting...</span>
+      </div>
+      <div class="header-status">
+        <div class="dot green"></div> All Systems Operational
+      </div>
+      <div class="user-badge" onclick="logout()">
+        <i class="ti ti-user-circle" style="color:var(--cyan)"></i>
+        <span id="user-name-badge" style="font-size:12px">–</span>
+        <i class="ti ti-logout" style="color:var(--text-dim);font-size:14px"></i>
+      </div>
+    </div>
+  </div>
+
+  <div class="dex-main">
+    <div class="sidebar">
+      <div style="margin-bottom:24px">
+        <div class="sidebar-label">Overview</div>
+        <div class="sidebar-item active"><i class="ti ti-dashboard"></i> Dashboard</div>
+        <div class="sidebar-item"><i class="ti ti-activity"></i> Live Monitor</div>
+        <div class="sidebar-item"><i class="ti ti-chart-bar"></i> Analytics</div>
+      </div>
+      <div style="margin-bottom:24px">
+        <div class="sidebar-label">Security</div>
+        <div class="sidebar-item"><i class="ti ti-shield-check"></i> Threat Center <span class="sidebar-badge" id="threat-badge">3</span></div>
+        <div class="sidebar-item"><i class="ti ti-lock"></i> Access Control</div>
+        <div class="sidebar-item"><i class="ti ti-bug"></i> Vulnerability Scan</div>
+      </div>
+      <div style="margin-bottom:24px">
+        <div class="sidebar-label">AI Agent</div>
+        <div class="sidebar-item"><i class="ti ti-robot"></i> AI Engine</div>
+        <div class="sidebar-item"><i class="ti ti-tool"></i> Auto-Fix</div>
+        <div class="sidebar-item"><i class="ti ti-messages"></i> AI Chat</div>
+      </div>
+      <div>
+        <div class="sidebar-label">System</div>
+        <div class="sidebar-item"><i class="ti ti-database"></i> Database</div>
+        <div class="sidebar-item"><i class="ti ti-cloud"></i> Cloud Servers</div>
+        <div class="sidebar-item"><i class="ti ti-settings"></i> Settings</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="page-title">Dashboard</div>
+      <div class="page-sub" id="page-date">Loading...</div>
+
+      <div class="metrics-grid">
+        <div class="metric-card blue">
+          <div class="metric-label"><i class="ti ti-activity" style="color:#60A5FA"></i> API Requests</div>
+          <div class="metric-value" id="m-requests">–</div>
+          <div class="metric-change up">↑ Live count</div>
+        </div>
+        <div class="metric-card green">
+          <div class="metric-label"><i class="ti ti-shield" style="color:var(--green)"></i> Threats Blocked</div>
+          <div class="metric-value" id="m-threats">–</div>
+          <div class="metric-change up">↑ Auto-blocked</div>
+        </div>
+        <div class="metric-card red">
+          <div class="metric-label"><i class="ti ti-bug" style="color:var(--red)"></i> Active Incidents</div>
+          <div class="metric-value">7</div>
+          <div class="metric-change down">↓ 5 have AI fixes</div>
+        </div>
+        <div class="metric-card cyan">
+          <div class="metric-label"><i class="ti ti-users" style="color:var(--cyan)"></i> Active Users</div>
+          <div class="metric-value" id="m-users">–</div>
+          <div class="metric-change up">↑ Live sessions</div>
+        </div>
+      </div>
+
+      <div class="ai-panel">
+        <div class="ai-header">
+          <div class="ai-orb"><i class="ti ti-robot"></i></div>
+          <div>
+            <div class="ai-title">Dex-X AI Agent</div>
+            <div class="ai-subtitle">Powered by advanced analysis · Always on</div>
+          </div>
+          <div style="margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--green)">
+            <div class="dot green"></div> Active
+          </div>
+        </div>
+        <div class="ai-msg">
+          I detected <em id="ai-threats">3 SQL injection attempts</em> on your API endpoints in the last hour and blocked them automatically.
+          Your server response time has improved by <em>18%</em> after the cache optimization I applied.
+          There are <em>7 unresolved bugs</em> in Project Alpha — I've prepared fix suggestions for 5 of them.
+          Want me to apply the patches automatically?
+        </div>
+        <div class="ai-actions">
+          <div class="ai-chip">Apply AI Fixes ✕</div>
+          <div class="ai-chip">View Security Report</div>
+          <div class="ai-chip">Analyze Error Logs</div>
+          <div class="ai-chip">Scan Vulnerabilities</div>
+          <div class="ai-chip">Optimize Performance</div>
+        </div>
+      </div>
+
+      <div class="panels-row">
+        <div class="panel">
+          <div class="panel-title"><i class="ti ti-list"></i> Live Error Logs</div>
+          <div id="logs-container">
+            <div style="text-align:center;color:var(--text-dim);padding:20px;font-size:12px">Loading logs...</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-title"><i class="ti ti-cpu"></i> Server Resources</div>
+          <div class="bar-row">
+            <div class="bar-label">CPU</div>
+            <div class="bar-track"><div class="bar-fill cyan" id="bar-cpu" style="width:0%"></div></div>
+            <div class="bar-val" id="val-cpu">–</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">RAM</div>
+            <div class="bar-track"><div class="bar-fill blue" id="bar-ram" style="width:0%"></div></div>
+            <div class="bar-val" id="val-ram">–</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Disk I/O</div>
+            <div class="bar-track"><div class="bar-fill green" id="bar-disk" style="width:41%"></div></div>
+            <div class="bar-val" id="val-disk">41%</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Network</div>
+            <div class="bar-track"><div class="bar-fill cyan" id="bar-net" style="width:0%"></div></div>
+            <div class="bar-val" id="val-net">–</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">DB Queries</div>
+            <div class="bar-track"><div class="bar-fill green" id="bar-db" style="width:33%"></div></div>
+            <div class="bar-val" id="val-db">33%</div>
+          </div>
+          <div class="bar-row">
+            <div class="bar-label">Threats</div>
+            <div class="bar-track"><div class="bar-fill red" id="bar-thr" style="width:0%"></div></div>
+            <div class="bar-val" id="val-thr" style="color:var(--red)">–</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:14px">
+        <div class="panel-title"><i class="ti ti-apps"></i> Services Status</div>
+        <div class="services-grid">
+          <div class="service-card"><div class="service-icon cyan"><i class="ti ti-robot"></i></div><div><div class="service-name">AI Error Fixing</div><div class="service-status active">● Running · 5 fixes today</div></div></div>
+          <div class="service-card"><div class="service-icon red"><i class="ti ti-shield"></i></div><div><div class="service-name">Security Center</div><div class="service-status active">● Active · <span id="svc-threats">3</span> threats blocked</div></div></div>
+          <div class="service-card"><div class="service-icon blue"><i class="ti ti-cloud"></i></div><div><div class="service-name">Cloud Monitor</div><div class="service-status active">● Healthy · 4 servers</div></div></div>
+          <div class="service-card"><div class="service-icon green"><i class="ti ti-database"></i></div><div><div class="service-name">Database Mgmt</div><div class="service-status active">● Connected · PG + Mongo</div></div></div>
+          <div class="service-card"><div class="service-icon purple"><i class="ti ti-eye"></i></div><div><div class="service-name">Smart Monitor</div><div class="service-status active">● Live · <span id="svc-users">1.2K</span> sessions</div></div></div>
+          <div class="service-card"><div class="service-icon amber"><i class="ti ti-world"></i></div><div><div class="service-name">Web Protection</div><div class="service-status active">● On · WAF enabled</div></div></div>
+        </div>
+      </div>
+      <div class="slogan">Secure · Analyze · Solve — Smart Solutions Beyond Limits</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── Config ──────────────────────────────────────────────────────────────
+  // After deploying backend to Railway, replace this URL:
+  const API_URL = window.DEX_API_URL || "https://YOUR-RAILWAY-APP.up.railway.app";
+  const WS_URL  = API_URL.replace("https://", "wss://").replace("http://", "ws://");
+
+  let token = localStorage.getItem("dex_token");
+  let ws = null;
+  let currentUser = null;
+
+  // ── Boot ─────────────────────────────────────────────────────────────────
+  window.onload = () => {
+    document.getElementById("page-date").textContent =
+      new Date().toLocaleDateString("en-US", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+    document.querySelectorAll(".nav-btn").forEach(b => b.onclick = () => {
+      document.querySelectorAll(".nav-btn").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+    });
+    document.querySelectorAll(".sidebar-item").forEach(b => b.onclick = () => {
+      document.querySelectorAll(".sidebar-item").forEach(x => x.classList.remove("active"));
+      b.classList.add("active");
+    });
+    if (token) autoLogin();
+  };
+
+  async function autoLogin() {
+    try {
+      const r = await fetch(`${API_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+      if (r.ok) { currentUser = await r.json(); showDashboard(); }
+      else { localStorage.removeItem("dex_token"); token = null; }
+    } catch {}
+  }
+
+  // ── Auth ─────────────────────────────────────────────────────────────────
+  function showRegister() {
+    document.getElementById("login-form").style.display = "none";
+    document.getElementById("register-form").style.display = "block";
+    document.getElementById("login-error").style.display = "none";
+  }
+  function showLogin() {
+    document.getElementById("register-form").style.display = "none";
+    document.getElementById("login-form").style.display = "block";
+    document.getElementById("login-error").style.display = "none";
+  }
+  function showErr(msg) {
+    const el = document.getElementById("login-error");
+    el.textContent = msg; el.style.display = "block";
+  }
+
+  async function doLogin() {
+    const email = document.getElementById("login-email").value;
+    const password = document.getElementById("login-password").value;
+    if (!email || !password) return showErr("Please fill all fields");
+    const btn = document.getElementById("login-btn");
+    btn.disabled = true; btn.textContent = "Signing in...";
+    try {
+      const r = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await r.json();
+      if (!r.ok) { showErr(data.error || "Login failed"); }
+      else { token = data.token; currentUser = data.user; localStorage.setItem("dex_token", token); showDashboard(); }
+    } catch { showErr("Cannot reach server. Check backend URL."); }
+    btn.disabled = false; btn.textContent = "Sign In";
+  }
+
+  async function doRegister() {
+    const name = document.getElementById("reg-name").value;
+    const email = document.getElementById("reg-email").value;
+    const password = document.getElementById("reg-password").value;
+    if (!name || !email || !password) return showErr("Please fill all fields");
+    const btn = document.getElementById("reg-btn");
+    btn.disabled = true; btn.textContent = "Creating...";
+    try {
+      const r = await fetch(`${API_URL}/api/auth/register`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password })
+      });
+      const data = await r.json();
+      if (!r.ok) { showErr(data.error || "Registration failed"); }
+      else { token = data.token; currentUser = data.user; localStorage.setItem("dex_token", token); showDashboard(); }
+    } catch { showErr("Cannot reach server. Check backend URL."); }
+    btn.disabled = false; btn.textContent = "Create Account";
+  }
+
+  function logout() {
+    localStorage.removeItem("dex_token");
+    token = null; if (ws) ws.close();
+    document.getElementById("dashboard").style.display = "none";
+    document.getElementById("login-screen").style.display = "flex";
+  }
+
+  // ── Dashboard ─────────────────────────────────────────────────────────────
+  function showDashboard() {
+    document.getElementById("login-screen").style.display = "none";
+    document.getElementById("dashboard").style.display = "flex";
+    document.getElementById("user-name-badge").textContent = currentUser?.name || "User";
+    fetchMetrics();
+    fetchLogs();
+    connectWS();
+  }
+
+  async function fetchMetrics() {
+    try {
+      const r = await fetch(`${API_URL}/api/metrics`, { headers: { Authorization: `Bearer ${token}` } });
+      if (r.ok) updateMetrics(await r.json());
+    } catch {}
+  }
+
+  async function fetchLogs() {
+    try {
+      const r = await fetch(`${API_URL}/api/logs?limit=5`, { headers: { Authorization: `Bearer ${token}` } });
+      if (r.ok) renderLogs(await r.json());
+    } catch {}
+  }
+
+  function updateMetrics(m) {
+    setText("m-requests", m.requestsToday?.toLocaleString() || "–");
+    setText("m-threats", m.threatsBlocked ?? "–");
+    setText("m-users", m.activeUsers >= 1000 ? (m.activeUsers/1000).toFixed(1)+"K" : m.activeUsers);
+    setBar("cpu", m.cpu);
+    setBar("ram", m.ram);
+    setBar("net", m.network);
+    setText("val-thr", (m.threats||0)+"%");
+    setBar("thr", m.threats || 0);
+    setText("svc-threats", m.threatsBlocked ?? "–");
+    setText("threat-badge", m.threatsBlocked ?? "–");
+    document.getElementById("ai-threats").textContent = `${m.threatsBlocked || 0} SQL injection attempts`;
+    const u = m.activeUsers;
+    setText("svc-users", u >= 1000 ? (u/1000).toFixed(1)+"K" : u);
+  }
+
+  function setBar(key, val) {
+    const b = document.getElementById("bar-"+key);
+    const v = document.getElementById("val-"+key);
+    if (b) b.style.width = val+"%";
+    if (v) v.textContent = val+"%";
+  }
+  function setText(id, val) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = val;
+  }
+
+  function renderLogs(logs) {
+    const c = document.getElementById("logs-container");
+    c.innerHTML = logs.slice(0,5).map(l => `
+      <div class="log-item">
+        <span class="log-badge badge-${l.level}">${l.level}</span>
+        <div class="log-msg"><span>${l.source}</span> — ${l.message}</div>
+        <div class="log-time">${timeAgo(l.time)}</div>
+      </div>`).join("");
+  }
+
+  function prependLog(log) {
+    const c = document.getElementById("logs-container");
+    const el = document.createElement("div");
+    el.innerHTML = `
+      <div class="log-item">
+        <span class="log-badge badge-${log.level}">${log.level}</span>
+        <div class="log-msg"><span>${log.source}</span> — ${log.message}</div>
+        <div class="log-time">just now</div>
+      </div>`;
+    c.prepend(el.firstElementChild);
+    const items = c.querySelectorAll(".log-item");
+    if (items.length > 5) items[items.length-1].remove();
+    showToast("🚨 " + log.message);
+  }
+
+  function timeAgo(iso) {
+    const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+    if (diff < 60) return diff+"s ago";
+    if (diff < 3600) return Math.floor(diff/60)+"m ago";
+    return Math.floor(diff/3600)+"h ago";
+  }
+
+  // ── WebSocket ─────────────────────────────────────────────────────────────
+  function connectWS() {
+    const url = `${WS_URL}?token=${token}`;
+    ws = new WebSocket(url);
+
+    ws.onopen = () => {
+      const el = document.getElementById("ws-status");
+      el.innerHTML = `<div class="dot green"></div><span style="color:var(--text-dim);font-size:11px">Live</span>`;
+    };
+    ws.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      if (msg.type === "metrics_update") updateMetrics(msg.data);
+      if (msg.type === "new_log" || msg.type === "threat") prependLog(msg.data);
+    };
+    ws.onclose = () => {
+      const el = document.getElementById("ws-status");
+      el.innerHTML = `<div class="dot red"></div><span style="color:var(--text-dim);font-size:11px">Reconnecting</span>`;
+      setTimeout(connectWS, 3000);
+    };
+    ws.onerror = () => ws.close();
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg; t.style.display = "block";
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.style.display = "none", 4000);
+  }
+
+  // Enter key support
+  document.addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      if (document.getElementById("register-form").style.display !== "none") doRegister();
+      else doLogin();
+    }
+  });
+</script>
+</body>
+</html>
