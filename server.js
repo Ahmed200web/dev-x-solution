@@ -18,7 +18,7 @@ const server = http.createServer(app);
 // ════════════════════════════════════════════════════════════════════════════
 const JWT_SECRET  = process.env.JWT_SECRET  || "dex-x-secret-CHANGE-ME";
 const JWT_REFRESH = process.env.JWT_REFRESH || "dex-x-refresh-CHANGE-ME";
-const PORT        = process.env.PORT        || 8080;
+const PORT        = process.env.PORT        || 3001;
 const NODE_ENV    = process.env.NODE_ENV    || "development";
 
 // ════════════════════════════════════════════════════════════════════════════
